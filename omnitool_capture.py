@@ -8,15 +8,20 @@ screenshot_shelf_filename = base_directory + r'screenshots.shelf'
 inverted_index_filename = base_directory + r'inverted_index.shelf'
 thumbnail_directory = base_directory + r'omnitool_thumbnails\\'
 
+SCREENCAP_FREQUENCY = 10 # in seconds
+EDIT_DISTANCE_THRESHOLD_TO_SKIP = 30
+TESSERACT_LANGUAGES = "eng+heb"    # if only english, make this "eng"  
+
 import time
+import datetime
 import os
 import shelve
+import editdistance
 import pyautogui
 import pytesseract
 from PIL import Image
 from omnitool_helper_functions import *
 pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
-
 
 # START:
 
@@ -28,6 +33,9 @@ database = shelve.open(screenshot_shelf_filename)
 inverted_index = shelve.open(inverted_index_filename)
 
 print "running omnitool capture. (This runs infinitely. to stop this, kill the program.)"
+print "started at time", datetime.datetime.now()
+screenshot = None
+screenshot_text = ""
 
 try:
     while True:
@@ -35,8 +43,15 @@ try:
         t_key = str(t)
 
         # take screenshot and OCR it:
+        old_screenshot = screenshot
+        old_screenshot_text = screenshot_text
         screenshot = pyautogui.screenshot()
-        screenshot_text = pytesseract.image_to_string(screenshot)
+        screenshot_text = pytesseract.image_to_string(screenshot, lang=TESSERACT_LANGUAGES)
+        if old_screenshot == screenshot or editdistance.eval(old_screenshot_text, screenshot_text) <= EDIT_DISTANCE_THRESHOLD_TO_SKIP:
+        # to avoid wasting space when the computer is idle, we check whether the screenshot didn't change or the OCR result changes only slightly. if any of those is true, we skip this one.
+            time.sleep(SCREENCAP_FREQUENCY)
+            print "skipping because unchanged, at time", datetime.datetime.now()
+            continue
 
         # reduce screenshot size and store it:
         compressed_screenshot_filename = thumbnail_directory + t_key + ".jpeg" 
@@ -46,8 +61,8 @@ try:
         
         # update inverted index: (actually doesn't have to do this right now; can always create the index from the database file at any time)
         words_in_screenshot = screenshot_text.split()
-        words_in_screenshot = [canonicise_word(w) for w in words_in_screenshot]
-        for w in set(words_in_screenshot):
+        canonicised_words_in_screenshot = set([canonicise_word(w) for w in words_in_screenshot]) - {""}
+        for w in canonicised_words_in_screenshot:
             if w not in inverted_index:
                 inverted_index[w] = []
             list_w = inverted_index[w]
@@ -55,7 +70,9 @@ try:
         inverted_index.sync()
         
         # rinse, repeat
-        time.sleep(10)
+        time.sleep(SCREENCAP_FREQUENCY)
 except:
     database.close()
     inverted_index.close()
+    raise
+
