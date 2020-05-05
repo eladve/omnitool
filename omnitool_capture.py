@@ -44,14 +44,16 @@ try:
 
         # take screenshot and OCR it:
         old_screenshot = screenshot
-        old_screenshot_text = screenshot_text
-        screenshot = pyautogui.screenshot()
-        screenshot_text = pytesseract.image_to_string(screenshot, lang=TESSERACT_LANGUAGES)
-        if old_screenshot == screenshot or editdistance.eval(old_screenshot_text, screenshot_text) <= EDIT_DISTANCE_THRESHOLD_TO_SKIP:
+        old_screenshot_text = screenshot_text        
+        new_screenshot = pyautogui.screenshot()
+        new_screenshot_text = pytesseract.image_to_string(new_screenshot, lang=TESSERACT_LANGUAGES)
+        if old_screenshot == new_screenshot or editdistance.eval(old_screenshot_text, new_screenshot_text) <= EDIT_DISTANCE_THRESHOLD_TO_SKIP:
         # to avoid wasting space when the computer is idle, we check whether the screenshot didn't change or the OCR result changes only slightly. if any of those is true, we skip this one.
             time.sleep(SCREENCAP_FREQUENCY)
             print "skipping because unchanged, at time", datetime.datetime.now()
             continue
+        screenshot = new_screenshot
+        screenshot_text = new_screenshot_text
 
         # reduce screenshot size and store it:
         compressed_screenshot_filename = thumbnail_directory + t_key + ".jpeg" 
