@@ -10,7 +10,7 @@ thumbnail_directory = base_directory + r'omnitool_thumbnails\\'
 
 SCREENCAP_FREQUENCY = 10 # in seconds
 EDIT_DISTANCE_THRESHOLD_TO_SKIP = 30
-TESSERACT_LANGUAGES = "eng+heb"    # if only english, make this "eng"  
+TESSERACT_LANGUAGES = "eng"    # can make this into different languages, e.g. for english and hebrew do "eng+heb"
 
 import time
 import datetime
