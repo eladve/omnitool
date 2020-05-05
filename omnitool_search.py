@@ -1,6 +1,5 @@
 # THE QUERY (no user interface yet):
-query_word = "python"
-
+query_word = u"python"
 
 # PLEASE EDIT THIS -- directories and file locations:
 base_directory = r'C:\omnitool\\'
@@ -10,11 +9,9 @@ thumbnail_directory = base_directory + r'omnitool_thumbnails\\'
 
 import time
 import shelve
+import editdistance
 from PIL import Image
 from omnitool_helper_functions import *
-
-
-# BEGIN:
 
 inverted_index = shelve.open(inverted_index_filename, flag='r')
 inverted_index_keys = inverted_index.keys()
@@ -32,12 +29,8 @@ try:
         assert last_hit in db_keys
         screenshot_filename = database[last_hit]["screenshot_file"]
         ocr_text = database[last_hit]["text"]
-        screenshot = Image.open(screenshot_filename)
-        try: # works in ipython notebook
-            display(screenshot)
-        except:
-            screenshot.show()
+        display_screenshot_by_filename(screenshot_filename)
 except:
     database.close()
     inverted_index.close()
-
+    raise
