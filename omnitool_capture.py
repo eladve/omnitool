@@ -15,6 +15,7 @@ TESSERACT_LANGUAGES = "eng"    # can make this into different languages, e.g. fo
 import time
 import datetime
 import os
+import traceback
 import shelve
 import editdistance
 import pyautogui
@@ -75,5 +76,11 @@ try:
 except:
     database.close()
     inverted_index.close()
+    print
+    print "exception happend! details:"
+    print e
+    traceback.print_exc()
+    print
+    raw_input("Press Enter to continue...")
     raise
 
